@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IQUIT – Υπολογιστής Παιχνιδιού (πλήρης έκδοση)</title>
+<style>
+  :root{ --bg:#0f172a; --card:#0b1220; --ring:#1f2937; --muted:#9ca3af; --accent:#f97316; --accent-2:#3b82f6; --good:#10b981; --bad:#ef4444; }
+  *{box-sizing:border-box}
+  body{margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;
+    background: radial-gradient(1000px 600px at 80% -10%, #1e293b 0%, var(--bg) 60%);
+    color:#e5e7eb; line-height:1.45;}
+  header{position:sticky; top:0; z-index:10; background:linear-gradient(180deg, rgba(15,23,42,.95), rgba(15,23,42,.75)); backdrop-filter: blur(6px); border-bottom:1px solid #1f2937;}
+  .wrap{max-width:1200px; margin:0 auto; padding:14px 16px;}
+  h1{margin:0; font-size: clamp(20px, 3.2vw, 30px); display:flex; align-items:center; gap:10px;}
+  .tag{display:inline-block; padding:2px 10px; border-radius:999px; background:#111827; border:1px solid #1f2937; font-size:12px;}
+  main{max-width:1200px; margin:14px auto; padding:16px;}
+  .grid{display:grid; grid-template-columns: 1.1fr .9fr; gap:16px;}
+  .card{background:linear-gradient(180deg, #0b1220, #0b1323); border:1px solid var(--ring); border-radius:14px; padding:16px; box-shadow: 0 10px 30px rgba(0,0,0,.3);}
+  h2{margin:0 0 12px 0; font-size:18px; color:#fff}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  input[type="text"],input[type="number"]{
+    background:#0b1220; color:#fff; border:1px solid #1f2937; border-radius:10px; padding:10px 12px; outline:none; width:100%;
+  }
+  input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+  label{font-size:12px; color:var(--muted)}
+  .field{display:grid; gap:6px; width:100%}
+  .two{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+  .three{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;}
+  .btn{appearance:none; border:1px solid var(--ring); color:#fff; background:#0b1220; padding:10px 12px; border-radius:10px; cursor:pointer; transition:.2s;}
+  .btn:hover{ border-color:#334155; background:#0d172a }
+  .btn.acc{ background:var(--accent); border-color:#ea580c; }
+  .btn.acc2{ background:var(--accent-2); border-color:#2563eb; }
+  .btn.good{ background:var(--good); border-color:#059669; }
+  .btn.bad{ background:var(--bad); border-color:#dc2626; }
+  .btn.ghost{ background:transparent; }
+  table{width:100%; border-collapse: collapse; margin-top:8px; font-size:14px}
+  th, td{ border-bottom:1px dashed #1f2937; padding:10px 6px; }
+  th{ text-align:left; color:#fff; font-weight:600; }
+  td input{ width:100%; }
+  .right{text-align:right}
+  .muted{ color: var(--muted) }
+  .pill{padding:4px 10px; border-radius:999px; border:1px solid #1f2937; display:inline-block; background:#0b1220; color:#fff; font-size:12px}
+  .stat{display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; padding:10px 12px; background:#0b1220; border:1px solid #1f2937; border-radius:10px;}
+  .bar{height:8px; background:#111827; border-radius:999px; overflow:hidden}
+  .bar > div{height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); width:0%}
+  footer{opacity:.7; padding:16px; text-align:center; font-size:12px}
+  .small{font-size:12px}
+  .grid-2col{display:grid; grid-template-columns: 1fr 1fr; gap:16px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>IQUIT – Κομπιουτεράκι Επιτραπέζιου <span class="tag">πλήρης</span></h1>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+
+    <!-- ΑΡΙΣΤΕΡΑ -->
+    <section class="card">
+      <h2>Ρυθμίσεις Παιχνιδιού</h2>
+      <div class="three">
+        <div class="field">
+          <label>Ηλικία</label>
+          <input type="number" id="age" min="18" max="65" step="1">
+        </div>
+        <div class="field">
+          <label>Ταμείο (€)</label>
+          <input type="number" id="cash" step="any">
+        </div>
+        <div class="field">
+          <label>Μισθός/Γύρο (€)</label>
+          <input type="number" id="salary" step="any">
+        </div>
+      </div>
+
+      <div class="two" style="margin-top:10px">
+        <button class="btn acc" id="applyIncome">Μισθός + Επενδύσεις → Ταμείο</button>
+        <button class="btn good" id="nextTurn">Επόμενος Γύρος (ηλικία+1 & ταμείο+καθαρή ροή)</button>
+      </div>
+      <div class="two" style="margin-top:10px">
+        <button class="btn bad" id="applyInflation">Πληθωρισμός 5% (στα μετρητά)</button>
+        <button class="btn" id="taxBB">Φόρος BB (ποσό)</button>
+      </div>
+      <div class="two" style="margin-top:10px">
+        <button class="btn ghost" id="exportBtn">Εξαγωγή</button>
+        <button class="btn ghost" id="importBtn">Εισαγωγή</button>
+      </div>
+      <div class="two" style="margin-top:10px">
+        <button class="btn bad" id="resetAll">Reset παιχνίδι</button>
+        <button class="btn acc2" id="seedDemo">Φόρτωση demo</button>
+      </div>
+      <p class="small muted" style="margin-top:8px">Ο στόχος: <b>Παθητικό ≥ Έξοδα</b>. Βάλε αναλυτικά έξοδα με <b>Κατηγορία</b> & <b>Περιγραφή</b> και οργάνωσέ τα με τη σύνοψη ανά κατηγορία.</p>
+    </section>
+
+    <!-- ΔΕΞΙΑ -->
+    <section class="card">
+      <h2>Σύνοψη</h2>
+      <div class="stat"><div>Σύνολο Έξοδα</div><div class="right" id="sumExpenses">€0</div></div>
+      <div class="stat" style="margin-top:8px"><div>Σύνολο Παθητικό (Επενδύσεις)</div><div class="right" id="sumPassive">€0</div></div>
+      <div class="stat" style="margin-top:8px"><div>Καθαρή Ροή (Μισθός − Έξοδα + Παθητικό)</div><div class="right" id="netFlow">€0</div></div>
+      <div class="stat" style="margin-top:8px"><div>Ταμείο</div><div class="right" id="cashStat">€0</div></div>
+      <div class="stat" style="margin-top:8px"><div>Έτη μέχρι 65</div><div class="right" id="yearsStat">0</div></div>
+      <div style="margin-top:12px">
+        <div class="bar"><div id="progressBar"></div></div>
+        <div class="small muted" id="statusLine" style="margin-top:6px">Στόχος: Παθητικό ≥ Έξοδα</div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ΑΝΑΛΥΤΙΚΑ ΕΞΟΔΑ & ΕΠΕΝΔΥΣΕΙΣ -->
+  <div class="grid-2col" style="margin-top:16px">
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <h2>Έξοδα (αναλυτικά)</h2>
+        <div class="row">
+          <button class="btn acc2" id="addExpense">+ Έξοδο</button>
+          <button class="btn ghost" id="clearExpenses">Καθαρισμός</button>
+        </div>
+      </div>
+      <table id="expensesTbl">
+        <thead>
+          <tr>
+            <th style="width:160px">Κατηγορία</th>
+            <th>Περιγραφή</th>
+            <th class="right" style="width:160px">€/Γύρο</th>
+            <th style="width:60px"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <h2>Επενδύσεις (Παθητικό)</h2>
+        <div class="row">
+          <button class="btn acc2" id="addInvestment">+ Επένδυση</button>
+          <button class="btn ghost" id="clearInvestments">Καθαρισμός</button>
+        </div>
+      </div>
+      <table id="investTbl">
+        <thead>
+          <tr>
+            <th>Περιγραφή</th>
+            <th class="right" style="width:160px">Παθητικό €/Γύρο</th>
+            <th style="width:80px"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="row" style="margin-top:8px">
+        <button class="btn bad" id="markCrash">Κραχ/Αποτυχία (μηδένισε σειρά)</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ΣΥΝΟΨΗ ΚΑΤΗΓΟΡΙΩΝ ΕΞΟΔΩΝ -->
+  <section class="card" style="margin-top:16px">
+    <h2>Σύνοψη ανά κατηγορία εξόδων</h2>
+    <table id="catTbl">
+      <thead><tr><th>Κατηγορία</th><th class="right">Σύνολο €/Γύρο</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="small muted" style="margin-top:6px">Δες πού «φεύγουν» τα χρήματα (π.χ. Στέγαση, Μεταφορές, Διασκέδαση κ.λπ.).</p>
+  </section>
+
+</main>
+
+<footer>
+  IQUIT – πλήρης έκδοση · Τα δεδομένα αποθηκεύονται τοπικά (localStorage). Export/Import για backup.
+</footer>
+
+<script>
+// ---------- Helpers ----------
+const qs = s=>document.querySelector(s);
+const euro = n => new Intl.NumberFormat('el-GR',{style:'currency', currency:'EUR', maximumFractionDigits:0}).format(Number(isFinite(n)?n:0));
+const safe = v => Number(String(v).replace(',','.')) || 0;
+
+// ---------- State ----------
+const DEFAULTS = {
+  age: 25, cash: 2000, salary: 1500,
+  expenses: [
+    {id:'e1', cat:'Στέγαση', name:'Ενοίκιο', amount:500},
+    {id:'e2', cat:'Λογαριασμοί', name:'Ρεύμα/Ίντερνετ/Νερό', amount:180},
+    {id:'e3', cat:'Διατροφή', name:'Σούπερ μάρκετ', amount:260},
+  ],
+  investments: [
+    {id:'i1', name:'Project: Μικρή ενοικίαση', amount:120},
+    {id:'i2', name:'BB: Σταθμός φόρτισης', amount:250},
+  ]
+};
+let state = structuredClone(DEFAULTS);
+
+// ---------- Persistence ----------
+function load(){
+  try{
+    const raw = localStorage.getItem('iquit_calc_full');
+    if(!raw) return;
+    const obj = JSON.parse(raw);
+    state = Object.assign(structuredClone(DEFAULTS), obj);
+    // sanitize
+    state.age = Math.min(65, Math.max(18, safe(state.age)||25));
+    state.cash = safe(state.cash)||0;
+    state.salary = safe(state.salary)||0;
+    state.expenses = Array.isArray(state.expenses)? state.expenses.map(r=>({id:String(r.id||crypto.randomUUID()), cat:String(r.cat||''), name:String(r.name||''), amount:safe(r.amount)||0})) : [];
+    state.investments = Array.isArray(state.investments)? state.investments.map(r=>({id:String(r.id||crypto.randomUUID()), name:String(r.name||''), amount:safe(r.amount)||0})) : [];
+  }catch(e){
+    console.warn('Load failed', e);
+    state = structuredClone(DEFAULTS);
+    localStorage.removeItem('iquit_calc_full');
+  }
+}
+function save(){ try{ localStorage.setItem('iquit_calc_full', JSON.stringify(state)); }catch(e){} }
+
+// ---------- Calculations ----------
+function sumExpenses(){ return state.expenses.reduce((a,x)=>a+(safe(x.amount)||0),0); }
+function sumPassive(){ return state.investments.reduce((a,x)=>a+(safe(x.amount)||0),0); }
+function netFlow(){ return (safe(state.salary)||0) - sumExpenses() + sumPassive(); }
+function yearsLeft(){ return Math.max(0, 65 - (safe(state.age)||25)); }
+function groupByCategory(){
+  const map = new Map();
+  state.expenses.forEach(x=>{
+    const k = (x.cat||'Χωρίς κατηγορία').trim();
+    const v = safe(x.amount)||0;
+    map.set(k, (map.get(k)||0)+v);
+  });
+  return Array.from(map.entries()).sort((a,b)=>b[1]-a[1]);
+}
+
+// ---------- UI ----------
+function recalc(){
+  qs('#sumExpenses').textContent = euro(sumExpenses());
+  qs('#sumPassive').textContent  = euro(sumPassive());
+  qs('#netFlow').textContent     = euro(netFlow());
+  qs('#cashStat').textContent    = euro(state.cash);
+  qs('#yearsStat').textContent   = yearsLeft();
+  const e = sumExpenses(), p = sumPassive();
+  const ratio = e>0 ? Math.min(1, p/e) : (p>0?1:0);
+  qs('#progressBar').style.width = (ratio*100)+'%';
+  qs('#statusLine').textContent  = (p>=e)
+    ? `🎉 Μπορείς να παραιτηθείς! (Παθητικό ${euro(p)} ≥ Έξοδα ${euro(e)})`
+    : `Στόχος: Παθητικό ${euro(p)} / Έξοδα ${euro(e)}`;
+
+  // category summary
+  const catBody = qs('#catTbl tbody'); catBody.innerHTML='';
+  groupByCategory().forEach(([cat,total])=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${cat}</td><td class="right">${euro(total)}</td>`;
+    catBody.appendChild(tr);
+  });
+
+  save();
+}
+
+function renderTables(){
+  // expenses
+  const exBody = qs('#expensesTbl tbody'); exBody.innerHTML='';
+  state.expenses.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${r.cat||''}" data-t="ex" data-i="${i}" data-k="cat" placeholder="π.χ. Στέγαση"></td>
+      <td><input type="text" value="${r.name||''}" data-t="ex" data-i="${i}" data-k="name" placeholder="π.χ. Ενοίκιο"></td>
+      <td class="right"><input type="number" value="${safe(r.amount)||0}" step="any" data-t="ex" data-i="${i}" data-k="amount"></td>
+      <td class="right"><button class="btn ghost" data-del-ex="${i}" title="Διαγραφή">🗑️</button></td>
+    `;
+    exBody.appendChild(tr);
+  });
+
+  // investments
+  const inBody = qs('#investTbl tbody'); inBody.innerHTML='';
+  state.investments.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${r.name||''}" data-t="in" data-i="${i}" data-k="name" placeholder="π.χ. Project/BB"></td>
+      <td class="right"><input type="number" value="${safe(r.amount)||0}" step="any" data-t="in" data-i="${i}" data-k="amount"></td>
+      <td class="right"><button class="btn ghost" data-del-in="${i}" title="Διαγραφή">🗑️</button></td>
+    `;
+    inBody.appendChild(tr);
+  });
+
+  recalc();
+}
+
+function renderHeader(){
+  qs('#age').value    = state.age;
+  qs('#cash').value   = state.cash;
+  qs('#salary').value = state.salary;
+}
+
+// ---------- Events ----------
+function bind(){
+  // top inputs
+  qs('#age').addEventListener('input', e=>{ state.age = Math.min(65, Math.max(18, safe(e.target.value)||25)); recalc(); });
+  qs('#cash').addEventListener('input', e=>{ state.cash = safe(e.target.value)||0; recalc(); });
+  qs('#salary').addEventListener('input', e=>{ state.salary = safe(e.target.value)||0; recalc(); });
+
+  // table edits
+  document.addEventListener('input', e=>{
+    const t=e.target.dataset.t, i=Number(e.target.dataset.i), k=e.target.dataset.k;
+    if(t==='ex' && state.expenses[i]){ 
+      state.expenses[i][k] = (k==='amount') ? safe(e.target.value)||0 : String(e.target.value||'');
+      recalc();
+    }
+    if(t==='in' && state.investments[i]){ 
+      state.investments[i][k] = (k==='amount') ? safe(e.target.value)||0 : String(e.target.value||'');
+      recalc();
+    }
+  });
+  // deletes
+  document.addEventListener('click', e=>{
+    if(e.target.dataset.delEx!==undefined){ state.expenses.splice(Number(e.target.dataset.delEx),1); renderTables(); }
+    if(e.target.dataset.delIn!==undefined){ state.investments.splice(Number(e.target.dataset.delIn),1); renderTables(); }
+  });
+
+  // add/clear
+  qs('#addExpense').addEventListener('click', ()=>{ state.expenses.push({id:crypto.randomUUID(), cat:'', name:'', amount:0}); renderTables(); });
+  qs('#clearExpenses').addEventListener('click', ()=>{ if(confirm('Καθαρισμός όλων των εξόδων;')){ state.expenses=[]; renderTables(); } });
+
+  qs('#addInvestment').addEventListener('click', ()=>{ state.investments.push({id:crypto.randomUUID(), name:'', amount:0}); renderTables(); });
+  qs('#clearInvestments').addEventListener('click', ()=>{ if(confirm('Καθαρισμός όλων των επενδύσεων;')){ state.investments=[]; renderTables(); } });
+
+  // actions
+  qs('#applyIncome').addEventListener('click', ()=>{ state.cash = Math.round(state.cash + netFlow()); renderHeader(); recalc(); });
+  qs('#nextTurn').addEventListener('click', ()=>{ const net = netFlow(); state.cash = Math.round(state.cash + net); state.age = Math.min(65, state.age+1); renderHeader(); recalc(); });
+  qs('#applyInflation').addEventListener('click', ()=>{ if(!confirm('Εφαρμογή πληθωρισμού 5% στα μετρητά;')) return; state.cash = Math.round(state.cash * 0.95); renderHeader(); recalc(); });
+  qs('#taxBB').addEventListener('click', ()=>{ const val = prompt('Ποσό φόρου BB (€) για αφαίρεση από τα μετρητά;','0'); if(val===null) return; const amt = Math.round(safe(val)||0); state.cash = Math.max(0, state.cash - amt); renderHeader(); recalc(); });
+
+  // export/import
+  qs('#exportBtn').addEventListener('click', ()=>{
+    const data = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+    const a = document.createElement('a'); a.href='data:application/octet-stream;base64,'+data; a.download='iquit_state_full.json'; a.click();
+  });
+  qs('#importBtn').addEventListener('click', ()=>{
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+    inp.onchange = ev=>{
+      const f = ev.target.files[0]; if(!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const obj = JSON.parse(reader.result);
+          localStorage.setItem('iquit_calc_full', JSON.stringify(obj));
+          load(); renderHeader(); renderTables();
+        }catch(e){ alert('Μη έγκυρο αρχείο.'); }
+      };
+      reader.readAsText(f);
+    };
+    inp.click();
+  });
+
+  // reset/demo
+  qs('#resetAll').addEventListener('click', ()=>{ if(!confirm('Οριστική επαναφορά; Θα χαθούν τα αποθηκευμένα δεδομένα.')) return; localStorage.removeItem('iquit_calc_full'); state = structuredClone(DEFAULTS); renderHeader(); renderTables(); });
+  qs('#seedDemo').addEventListener('click', ()=>{ state = structuredClone(DEFAULTS); renderHeader(); renderTables(); });
+
+  // crash
+  qs('#markCrash').addEventListener('click', ()=>{
+    if(state.investments.length===0) return alert('Δεν υπάρχουν επενδύσεις.');
+    const idx = prompt('Δώσε αριθμό σειράς επένδυσης για μηδενισμό (ξεκινά από 1):','1');
+    if(idx===null) return;
+    const i = Number(idx)-1; if(!state.investments[i]) return alert('Άκυρη επιλογή.');
+    if(confirm(`Μηδενισμός επένδυσης «${state.investments[i].name}»;`)){ state.investments[i].amount=0; renderTables(); }
+  });
+}
+
+// ---------- Init ----------
+document.addEventListener('DOMContentLoaded', ()=>{
+  load();
+  renderHeader();
+  renderTables();
+  bind();
+});
+</script>
+</body>
+</html>
